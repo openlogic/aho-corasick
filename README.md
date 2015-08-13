@@ -1,3 +1,34 @@
+OpenLogic Changes
+=================
+
+Word nodes instead of character nodes
+-------------------------------------
+
+For our specific use case, we know that we already have lower-case only, space-delimited-only text and "keywords".
+So this fork tokenizes the kewords and text into space-delimited tokens instead of characters.
+
+For our use case, this turns out to use about half as much heap memory for the Trie structure, but is within 10ths
+of a second of the same speed as the character-based nodes.
+
+
+No more option for `removeOverlaps`
+-----------------------------------
+
+We don't care about this option so didn't reimplement it for word-tokens.
+
+
+No more option for `onlyWholeWords`
+-----------------------------------
+
+By using words as nodes, you get that for free.
+
+
+
+--
+
+
+
+
 Aho-Corasick
 ============
 

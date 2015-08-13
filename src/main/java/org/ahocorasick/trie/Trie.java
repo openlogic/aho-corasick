@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
+//import java.util.StringTokenizer;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
@@ -51,8 +52,10 @@ public class Trie {
             return;
         }
         State currentState = this.rootState;
-        for (Character character : keyword.toCharArray()) {
-            currentState = currentState.addState(character);
+
+        java.util.StringTokenizer st = new java.util.StringTokenizer(keyword);
+        while (st.hasMoreTokens()) {
+            currentState = currentState.addState(st.nextToken());
         }
         currentState.addEmit(keyword);
     }
@@ -92,50 +95,28 @@ public class Trie {
         int position = 0;
         State currentState = this.rootState;
         List<Emit> collectedEmits = new ArrayList<Emit>();
-        for (Character character : text.toCharArray()) {
-            if (trieConfig.isCaseInsensitive()) {
-                character = Character.toLowerCase(character);
+
+        String space = " ";
+
+        java.util.StringTokenizer st = new java.util.StringTokenizer(text, space, true);
+        while (st.hasMoreTokens()) {
+            String token = st.nextToken();
+            if (token.equals(space)) {
+                position += 1;
+            } else {
+                currentState = getState(currentState, token);
+                storeEmits(position, currentState, collectedEmits);
+                position += token.length();
             }
-            currentState = getState(currentState, character);
-            storeEmits(position, currentState, collectedEmits);
-            position++;
         }
-
-        if (trieConfig.isOnlyWholeWords()) {
-            removePartialMatches(text, collectedEmits);
-        }
-
-        if (!trieConfig.isAllowOverlaps()) {
-            IntervalTree intervalTree = new IntervalTree((List<Intervalable>)(List<?>)collectedEmits);
-            intervalTree.removeOverlaps((List<Intervalable>) (List<?>) collectedEmits);
-        }
-
         return collectedEmits;
     }
 
-    private void removePartialMatches(String searchText, List<Emit> collectedEmits) {
-        long size = searchText.length();
-        List<Emit> removeEmits = new ArrayList<Emit>();
-        for (Emit emit : collectedEmits) {
-            if ((emit.getStart() == 0 ||
-                 !Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) &&
-                (emit.getEnd() + 1 == size ||
-                 !Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)))) {
-                continue;
-            }
-            removeEmits.add(emit);
-        }
-
-        for (Emit removeEmit : removeEmits) {
-            collectedEmits.remove(removeEmit);
-        }
-    }
-
-    private State getState(State currentState, Character character) {
-        State newCurrentState = currentState.nextState(character);
+    private State getState(State currentState, String token) {
+        State newCurrentState = currentState.nextState(token);
         while (newCurrentState == null) {
             currentState = currentState.failure();
-            newCurrentState = currentState.nextState(character);
+            newCurrentState = currentState.nextState(token);
         }
         return newCurrentState;
     }
@@ -160,7 +141,7 @@ public class Trie {
         while (!queue.isEmpty()) {
             State currentState = queue.remove();
 
-            for (Character transition : currentState.getTransitions()) {
+            for (String transition : currentState.getTransitions()) {
                 State targetState = currentState.nextState(transition);
                 queue.add(targetState);
 
@@ -179,7 +160,7 @@ public class Trie {
         Collection<String> emits = currentState.emit();
         if (emits != null && !emits.isEmpty()) {
             for (String emit : emits) {
-                collectedEmits.add(new Emit(position-emit.length()+1, position, emit));
+                collectedEmits.add(new Emit(position, position+emit.length() - 1, emit));
             }
         }
     }

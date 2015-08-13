@@ -35,7 +35,7 @@ public class State {
      * referred to in the white paper as the 'goto' structure. From a state it is possible to go
      * to other states, depending on the character passed.
      */
-    private Map<Character,State> success = new TreeMap<Character, State>();
+    private Map<String,State> success = new TreeMap<String, State>();
 
     /** if no matching states are found, the failure state will be returned */
     private State failure = null;
@@ -52,27 +52,27 @@ public class State {
         this.rootState = depth == 0 ? this : null;
     }
 
-    private State nextState(Character character, boolean ignoreRootState) {
-        State nextState = this.success.get(character);
+    private State nextState(String token, boolean ignoreRootState) {
+        State nextState = this.success.get(token);
         if (!ignoreRootState && nextState == null && this.rootState != null) {
             nextState = this.rootState;
         }
         return nextState;
     }
 
-    public State nextState(Character character) {
-        return nextState(character, false);
+    public State nextState(String token) {
+        return nextState(token, false);
     }
 
-    public State nextStateIgnoreRootState(Character character) {
-        return nextState(character, true);
+    public State nextStateIgnoreRootState(String token) {
+        return nextState(token, true);
     }
 
-    public State addState(Character character) {
-        State nextState = nextStateIgnoreRootState(character);
+    public State addState(String token) {
+        State nextState = nextStateIgnoreRootState(token);
         if (nextState == null) {
             nextState = new State(this.depth+1);
-            this.success.put(character, nextState);
+            this.success.put(token, nextState);
         }
         return nextState;
     }
@@ -110,7 +110,7 @@ public class State {
         return this.success.values();
     }
 
-    public Collection<Character> getTransitions() {
+    public Collection<String> getTransitions() {
         return this.success.keySet();
     }
 
